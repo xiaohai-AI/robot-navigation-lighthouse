@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path('/home/dan/HelloAgents/hello-agents/code/chapter6/AutoGenDemo/robot/mak_demo')))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from semantic_map import SemanticMap          # noqa: E402
 

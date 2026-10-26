@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-HERE = Path('/home/dan/HelloAgents/hello-agents/code/chapter6/AutoGenDemo/robot/mak_demo')
+HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 
 from planner import describe_plan, plan_sequence, split_segments, summarize  # noqa: E402

@@ -17,7 +17,7 @@
         判定 stalled → 取消目标（这就是探索阶段踩过的"目标在飞但车不动"）。
 
 跑法（必须在已 source 过 ROS 的终端里）：
-    cd /home/dan/HelloAgents/hello-agents/code/chapter6/AutoGenDemo/robot
+    cd ~/Project/hermes_proj/robot-navigation-lighthouse
     source /opt/ros/humble/setup.bash
     /usr/bin/python3 agent_bridge.py
 """

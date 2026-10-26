@@ -6,7 +6,7 @@ import json
 from collections import Counter, defaultdict
 from pathlib import Path
 
-SP = Path('/home/dan/HelloAgents/hello-agents/code/chapter6/AutoGenDemo/robot/config/semantics.json')
+SP = Path(__file__).resolve().parents[2] / 'config' / 'semantics.json'
 d = json.loads(SP.read_text())
 
 print('frame:', d.get('frame'))

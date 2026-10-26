@@ -2,7 +2,7 @@
 import sys
 from pathlib import Path
 
-HERE = Path('/home/dan/HelloAgents/hello-agents/code/chapter6/AutoGenDemo/robot/mak_demo')
+HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE))
 
 from agent_nav import room_list_text, strip_action          # noqa: E402
