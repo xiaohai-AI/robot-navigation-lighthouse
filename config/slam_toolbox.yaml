@@ -1,0 +1,83 @@
+# ============================================================================
+#  slam_toolbox —— 在线异步建图 (online async) 参数
+#  基准: /opt/ros/humble/share/slam_toolbox/config/mapper_params_online_async.yaml
+#  dan: 标记的是为本项目（16x12 m / 7 房间 / Lighthouse 塔顶 0.78 m 雷达，0.12~12 m 量程）调过的值
+# ============================================================================
+slam_toolbox:
+  ros__parameters:
+
+    # ---- 求解器 ----
+    solver_plugin: solver_plugins::CeresSolver
+    ceres_linear_solver: SPARSE_NORMAL_CHOLESKY
+    ceres_preconditioner: SCHUR_JACOBI
+    ceres_trust_strategy: LEVENBERG_MARQUARDT
+    ceres_dogleg_type: TRADITIONAL_DOGLEG
+    ceres_loss_function: None
+
+    # ---- 坐标系 / 话题 ----
+    odom_frame: odom
+    map_frame: map
+    base_frame: base_footprint
+    scan_topic: /scan
+    use_map_saver: true
+    use_sim_time: true            # dan: 仿真必须为 true
+    mode: mapping                 # mapping | localization
+
+    # ---- 地图输出 ----
+    debug_logging: false
+    throttle_scans: 1             # 每帧都吃（10 Hz 完全扛得住）
+    transform_publish_period: 0.02
+    map_update_interval: 2.0      # dan: 5.0 -> 2.0，地图刷新更快，便于看建图过程
+    resolution: 0.05              # 5 cm/格，够建 1 m 门洞
+    min_laser_range: 0.12         # dan: 和雷达 min 一致
+    max_laser_range: 12.0         # 必须和 model.sdf 的 <max>12.0</max> 一致！
+                                  # 曾经设成 6.0（想让地图干净），结果更糟：
+                                  # 走廊尽头 8~17 m 的墙被丢弃，走廊方向失去约束
+                                  # → scan matching 沿走廊退化（corridor aliasing）
+                                  # → 偏航每帧滑一点，累积成整张图旋转 20~30° + 放射状喷雾
+    minimum_time_interval: 0.2    # dan: 0.5 -> 0.2，10 Hz 雷达下更充分
+    transform_timeout: 0.2
+    tf_buffer_duration: 30.
+    stack_size_to_use: 40000000
+    enable_interactive_mode: true
+
+    # ---- 通用 ----
+    use_scan_matching: true
+    use_scan_barycenter: true
+    minimum_travel_distance: 0.3  # 保持默认：改小会让 slam_toolbox 更容易崩
+    minimum_travel_heading: 0.3
+    scan_buffer_size: 10
+    scan_buffer_maximum_scan_distance: 10.0
+    link_match_minimum_response_fine: 0.1
+    link_scan_maximum_distance: 1.5
+    loop_search_maximum_distance: 3.0
+    do_loop_closing: true         # dan: 厨房<->书房有内门，环路闭合用得上
+    loop_match_minimum_chain_size: 10
+    loop_match_maximum_variance_coarse: 3.0
+    loop_match_minimum_response_coarse: 0.35
+    loop_match_minimum_response_fine: 0.45
+
+    # ---- 相关性搜索 ----
+    # ⚠️ 注意：把 correlation_search_space_dimension 改小（比如 0.25）会让 slam_toolbox
+    #    在 Humble 上崩掉：Mapper FATAL ERROR - unable to get pointer in probability search!
+    #    所以这里保持官方默认值，不要为了"让地图更干净"去动它。
+    correlation_search_space_dimension: 0.5
+    correlation_search_space_resolution: 0.01
+    correlation_search_space_smear_deviation: 0.1
+
+    # ---- 回环闭合搜索 ----
+    loop_search_space_dimension: 8.0
+    loop_search_space_resolution: 0.05
+    loop_search_space_smear_deviation: 0.03
+
+    # ---- 扫描匹配 ----
+    distance_variance_penalty: 0.5
+    angle_variance_penalty: 1.0
+    fine_search_angle_offset: 0.00349
+    coarse_search_angle_offset: 0.349
+    coarse_angle_resolution: 0.0349
+    minimum_angle_penalty: 0.9
+    minimum_distance_penalty: 0.5
+    use_response_expansion: true
+    min_pass_through: 2
+    occupancy_threshold: 0.1

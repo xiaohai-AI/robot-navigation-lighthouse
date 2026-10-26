@@ -1,0 +1,34 @@
+
+digraph G {
+  graph [rankdir=TB, fontname="Helvetica", nodesep=.35, ranksep=.45, bgcolor="white"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, color="#64748b", penwidth=1.1];
+  edge  [color="#94a3b8", arrowsize=.7];
+
+  subgraph cluster_0 { label="Layer 5 — interaction"; style="rounded,dashed"; color="#cbd5e1"; fontsize=9;
+    a [label="terminal REPL  (mak_demo/main.py)\npreemption: one asyncio task per utterance", fillcolor="#fef3c7"];
+  }
+  subgraph cluster_1 { label="Layer 4 — agent (LLM)"; style="rounded,dashed"; color="#cbd5e1"; fontsize=9;
+    b [label="agent_nav.py — intent routing\nA nav · D nav+vision · E passability · F cancel · ASK", fillcolor="#dbeafe"];
+    c [label="qwen3-vl:8b — the agent\ncompletion + vision + tools + thinking\nqwen2.5:7b — reporter (1.9 s vs 31.7 s)", fillcolor="#dbeafe"];
+  }
+  subgraph cluster_2 { label="Layer 3 — semantic map"; style="rounded,dashed"; color="#cbd5e1"; fontsize=9;
+    d [label="semantics.json (authored truth)\nresolve_room / resolve_object\nstandoff_pose() · 16-direction sampling", fillcolor="#dcfce7"];
+  }
+  subgraph cluster_3 { label="Layer 2 — ROS 2 navigation"; style="rounded,dashed"; color="#cbd5e1"; fontsize=9;
+    e [label="slam_toolbox (mapping)\nNavFn + DWB + BT (nav2)", fillcolor="#f1f5f9"];
+    f [label="frontier_explore.py\ntour_node.py (frozen)", fillcolor="#f1f5f9"];
+  }
+  subgraph cluster_4 { label="Layer 1 — simulation"; style="rounded,dashed"; color="#cbd5e1"; fontsize=9;
+    g [label="Gazebo Fortress 6.18\ndan_house.world (*.world from build_world.py)", fillcolor="#f8fafc"];
+    h [label="robot: Lighthouse diff-drive\nlidar 2D / 64-line · RGB camera · IMU", fillcolor="#f8fafc"];
+  }
+  a -> b [label="text"];
+  b -> c [label="prompt", style=dashed];
+  b -> d [label="resolve / standoff"];
+  b -> e [label="/agent/nav_goal  (rosbridge → agent_bridge)"];
+  d -> e [label="goal pose"];
+  e -> f [label="goal source", dir=back];
+  e -> g [label="/cmd_vel · /scan · TF"];
+  g -> h [label="physics + sensors"];
+  h -> e [label="/scan, /odom, images", style=dashed];
+}

@@ -1,0 +1,40 @@
+
+digraph G {
+  graph [rankdir=LR, fontname="Helvetica", nodesep=.28, ranksep=.5, bgcolor="white"];
+  node  [shape=box, fontname="Helvetica", fontsize=9.5, style="rounded,filled", color="#64748b"];
+  edge  [color="#94a3b8", arrowsize=.7, fontname="Helvetica", fontsize=8, fontcolor="#475569"];
+
+  bw  [label="build_world.py\n(898 lines)\nsingle source of truth", fillcolor="#fde68a"];
+  wo  [label="worlds/dan_house.world\nworlds/dan_house_3d.world", fillcolor="#f1f5f9"];
+  se  [label="config/semantics.json\n11 KB · rooms + 61 objects", fillcolor="#dcfce7"];
+  ro  [label="config/route.json\n26 tour waypoints", fillcolor="#dcfce7"];
+
+  lh  [label="models/lighthouse/   (2D)\nmodels/lighthouse_3d/ (64-line)", fillcolor="#f1f5f9"];
+  lch [label="dan_house.launch.py\n(495 lines)", fillcolor="#fde68a"];
+  sl  [label="config/slam_toolbox.yaml", fillcolor="#f1f5f9"];
+  np  [label="config/nav2_params*.yaml\n(4 files, isolated roles)", fillcolor="#f1f5f9"];
+  bt  [label="config/nav_to_pose*.xml", fillcolor="#f1f5f9"];
+  mp  [label="config/maps/*.pgm + .yaml\n(390 files: live + experiments)", fillcolor="#e2e8f0"];
+
+  ag  [label="agent_bridge.py\n(287 lines)", fillcolor="#fde68a"];
+  md  [label="mak_demo/ (2161 lines)\nagent_nav · semantic_map · vision", fillcolor="#fde68a"];
+  lx  [label="mak_demo/data/lexicon.json", fillcolor="#dcfce7"];
+  gl  [label="tools/*.py\nscan_pub_guard · explore_ab · map_quality", fillcolor="#fde68a"];
+  dl  [label="delivery/2026-10-26/\nfrozen docs + MANIFEST.sha256", fillcolor="#fee2e2"];
+
+  bw -> wo [label="generates"];
+  bw -> se [label="generates"];
+  bw -> ro [label="generates"];
+  lch -> lh [label="spawns (model:// URI)"];
+  lch -> mp  [label="SLAM writes"];
+  sl -> lch;
+  np -> lch;
+  bt -> np;
+  se -> md  [label="read-only"];
+  lx -> md  [label="read-only"];
+  ro -> lch [label="tour waypoints"];
+  md -> ag   [label="websocket /agent/*"];
+  ag -> lch  [label="Nav2 actions"];
+  md -> gl [style=dashed, label="dev checks"];
+  {rank=same; se; ro;}
+}

@@ -1,0 +1,767 @@
+{
+ "frame": "odom/map（机器人出生点为原点，朝向 +x）",
+ "note": "由 build_world.py 自动生成，供第二阶段语义导航做真值/评测",
+ "rooms": [
+  {
+   "name": "living_room",
+   "label_zh": "客厅",
+   "rect": [
+    -8.89,
+    1.56,
+    -3.2,
+    6.89
+   ],
+   "center": [
+    -6.045,
+    4.225
+   ],
+   "door_center": [
+    -6.0,
+    1.5
+   ],
+   "door_width": 1.3
+  },
+  {
+   "name": "kitchen",
+   "label_zh": "厨房",
+   "rect": [
+    -3.08,
+    1.56,
+    1.6,
+    6.89
+   ],
+   "center": [
+    -0.74,
+    4.225
+   ],
+   "door_center": [
+    -0.8,
+    1.5
+   ],
+   "door_width": 1.3
+  },
+  {
+   "name": "study",
+   "label_zh": "书房",
+   "rect": [
+    1.72,
+    1.56,
+    8.89,
+    6.89
+   ],
+   "center": [
+    5.305,
+    4.225
+   ],
+   "door_center": [
+    5.2,
+    1.5
+   ],
+   "door_width": 1.3
+  },
+  {
+   "name": "bedroom_1",
+   "label_zh": "卧室1",
+   "rect": [
+    -8.89,
+    -6.89,
+    -4.0,
+    -1.56
+   ],
+   "center": [
+    -6.445,
+    -4.225
+   ],
+   "door_center": [
+    -6.3,
+    -1.5
+   ],
+   "door_width": 1.3
+  },
+  {
+   "name": "bedroom_2",
+   "label_zh": "卧室2",
+   "rect": [
+    -3.88,
+    -6.89,
+    0.9,
+    -1.56
+   ],
+   "center": [
+    -1.49,
+    -4.225
+   ],
+   "door_center": [
+    -1.5,
+    -1.5
+   ],
+   "door_width": 1.3
+  },
+  {
+   "name": "bathroom",
+   "label_zh": "卫生间",
+   "rect": [
+    1.02,
+    -6.89,
+    3.6,
+    -1.56
+   ],
+   "center": [
+    2.31,
+    -4.225
+   ],
+   "door_center": [
+    2.3,
+    -1.5
+   ],
+   "door_width": 1.2
+  },
+  {
+   "name": "storage",
+   "label_zh": "储藏间",
+   "rect": [
+    3.72,
+    -6.89,
+    8.89,
+    -1.56
+   ],
+   "center": [
+    6.305,
+    -4.225
+   ],
+   "door_center": [
+    6.2,
+    -1.5
+   ],
+   "door_width": 1.3
+  },
+  {
+   "name": "corridor",
+   "label_zh": "走廊",
+   "rect": [
+    -8.89,
+    -1.44,
+    8.89,
+    1.44
+   ],
+   "center": [
+    0.0,
+    0.0
+   ],
+   "door_center": null,
+   "door_width": null
+  }
+ ],
+ "objects": [
+  {
+   "id": "sofa_1",
+   "class": "sofa",
+   "room": "living_room",
+   "x": -8.4,
+   "y": 4.3,
+   "yaw": 1.571,
+   "w": 1.0,
+   "d": 2.5
+  },
+  {
+   "id": "coffee_table_1",
+   "class": "coffee_table",
+   "room": "living_room",
+   "x": -7.35,
+   "y": 4.3,
+   "yaw": 1.571,
+   "w": 0.6,
+   "d": 1.0
+  },
+  {
+   "id": "tv_set_1",
+   "class": "tv_set",
+   "room": "living_room",
+   "x": -6.0,
+   "y": 6.55,
+   "yaw": -1.571,
+   "w": 1.85,
+   "d": 0.5
+  },
+  {
+   "id": "bookshelf_1",
+   "class": "bookshelf",
+   "room": "living_room",
+   "x": -3.55,
+   "y": 3.0,
+   "yaw": 1.571,
+   "w": 0.36,
+   "d": 1.4
+  },
+  {
+   "id": "plant_1",
+   "class": "plant",
+   "room": "living_room",
+   "x": -8.45,
+   "y": 6.4,
+   "yaw": 0,
+   "w": 0.78,
+   "d": 0.78
+  },
+  {
+   "id": "side_table_1",
+   "class": "side_table",
+   "room": "living_room",
+   "x": -8.5,
+   "y": 2.0,
+   "yaw": 0.0,
+   "w": 0.6,
+   "d": 0.6
+  },
+  {
+   "id": "floor_lamp_1",
+   "class": "floor_lamp",
+   "room": "living_room",
+   "x": -3.75,
+   "y": 6.2,
+   "yaw": 0,
+   "w": 0.34,
+   "d": 0.34
+  },
+  {
+   "id": "kitchen_counter_1",
+   "class": "kitchen_counter",
+   "room": "kitchen",
+   "x": -1.6,
+   "y": 6.5,
+   "yaw": 0.0,
+   "w": 2.72,
+   "d": 0.74
+  },
+  {
+   "id": "fridge_1",
+   "class": "fridge",
+   "room": "kitchen",
+   "x": -2.66,
+   "y": 5.2,
+   "yaw": 1.571,
+   "w": 0.78,
+   "d": 0.78
+  },
+  {
+   "id": "counter_side_1",
+   "class": "counter_side",
+   "room": "kitchen",
+   "x": 1.22,
+   "y": 5.6,
+   "yaw": 0.0,
+   "w": 0.74,
+   "d": 1.7
+  },
+  {
+   "id": "dining_table_1",
+   "class": "dining_table",
+   "room": "kitchen",
+   "x": -2.2,
+   "y": 3.4,
+   "yaw": 0,
+   "w": 1.1,
+   "d": 1.1
+  },
+  {
+   "id": "chair_1",
+   "class": "chair",
+   "room": "kitchen",
+   "x": -2.2,
+   "y": 2.7,
+   "yaw": 0.0,
+   "w": 0.46,
+   "d": 0.46
+  },
+  {
+   "id": "chair_2",
+   "class": "chair",
+   "room": "kitchen",
+   "x": -2.2,
+   "y": 4.1,
+   "yaw": 0.0,
+   "w": 0.46,
+   "d": 0.46
+  },
+  {
+   "id": "bookshelf_2",
+   "class": "bookshelf",
+   "room": "study",
+   "x": 2.8,
+   "y": 6.71,
+   "yaw": 0.0,
+   "w": 1.4,
+   "d": 0.36
+  },
+  {
+   "id": "bookshelf_3",
+   "class": "bookshelf",
+   "room": "study",
+   "x": 4.4,
+   "y": 6.71,
+   "yaw": 0.0,
+   "w": 1.4,
+   "d": 0.36
+  },
+  {
+   "id": "bookshelf_4",
+   "class": "bookshelf",
+   "room": "study",
+   "x": 6.0,
+   "y": 6.71,
+   "yaw": 0.0,
+   "w": 1.4,
+   "d": 0.36
+  },
+  {
+   "id": "desk_1",
+   "class": "desk",
+   "room": "study",
+   "x": 8.5,
+   "y": 4.6,
+   "yaw": -1.571,
+   "w": 0.72,
+   "d": 1.45
+  },
+  {
+   "id": "desk_2",
+   "class": "desk",
+   "room": "study",
+   "x": 8.5,
+   "y": 2.9,
+   "yaw": -1.571,
+   "w": 0.72,
+   "d": 1.45
+  },
+  {
+   "id": "chair_3",
+   "class": "chair",
+   "room": "study",
+   "x": 7.85,
+   "y": 4.6,
+   "yaw": 1.571,
+   "w": 0.46,
+   "d": 0.46
+  },
+  {
+   "id": "chair_4",
+   "class": "chair",
+   "room": "study",
+   "x": 7.85,
+   "y": 2.9,
+   "yaw": 1.571,
+   "w": 0.46,
+   "d": 0.46
+  },
+  {
+   "id": "pillar_1",
+   "class": "pillar",
+   "room": "study",
+   "x": 7.5,
+   "y": 5.6,
+   "yaw": 0,
+   "w": 0.5,
+   "d": 0.5
+  },
+  {
+   "id": "rack_1",
+   "class": "rack",
+   "room": "study",
+   "x": 2.5,
+   "y": 2.6,
+   "yaw": 0.0,
+   "w": 1.2,
+   "d": 0.5
+  },
+  {
+   "id": "plant_2",
+   "class": "plant",
+   "room": "study",
+   "x": 8.45,
+   "y": 1.95,
+   "yaw": 0,
+   "w": 0.78,
+   "d": 0.78
+  },
+  {
+   "id": "bed_1",
+   "class": "bed",
+   "room": "bedroom_1",
+   "x": -8.15,
+   "y": -3.9,
+   "yaw": -1.571,
+   "w": 2.1,
+   "d": 1.6
+  },
+  {
+   "id": "nightstand_1",
+   "class": "nightstand",
+   "room": "bedroom_1",
+   "x": -8.45,
+   "y": -2.55,
+   "yaw": 0.0,
+   "w": 0.48,
+   "d": 0.48
+  },
+  {
+   "id": "wardrobe_1",
+   "class": "wardrobe",
+   "room": "bedroom_1",
+   "x": -5.6,
+   "y": -6.55,
+   "yaw": 0.0,
+   "w": 1.0,
+   "d": 0.62
+  },
+  {
+   "id": "plant_3",
+   "class": "plant",
+   "room": "bedroom_1",
+   "x": -4.4,
+   "y": -1.95,
+   "yaw": 0,
+   "w": 0.78,
+   "d": 0.78
+  },
+  {
+   "id": "bed_2",
+   "class": "bed",
+   "room": "bedroom_2",
+   "x": -1.5,
+   "y": -5.85,
+   "yaw": 0.0,
+   "w": 1.6,
+   "d": 2.1
+  },
+  {
+   "id": "nightstand_2",
+   "class": "nightstand",
+   "room": "bedroom_2",
+   "x": -2.65,
+   "y": -6.5,
+   "yaw": 0.0,
+   "w": 0.48,
+   "d": 0.48
+  },
+  {
+   "id": "wardrobe_2",
+   "class": "wardrobe",
+   "room": "bedroom_2",
+   "x": 0.45,
+   "y": -5.9,
+   "yaw": 1.571,
+   "w": 0.62,
+   "d": 1.0
+  },
+  {
+   "id": "desk_3",
+   "class": "desk",
+   "room": "bedroom_2",
+   "x": -3.5,
+   "y": -3.0,
+   "yaw": 1.571,
+   "w": 0.72,
+   "d": 1.45
+  },
+  {
+   "id": "bathtub_1",
+   "class": "bathtub",
+   "room": "bathroom",
+   "x": 3.15,
+   "y": -4.8,
+   "yaw": 0.0,
+   "w": 0.9,
+   "d": 2.2
+  },
+  {
+   "id": "toilet_1",
+   "class": "toilet",
+   "room": "bathroom",
+   "x": 1.45,
+   "y": -6.4,
+   "yaw": 3.142,
+   "w": 0.44,
+   "d": 0.66
+  },
+  {
+   "id": "sink_basin_1",
+   "class": "sink_basin",
+   "room": "bathroom",
+   "x": 1.35,
+   "y": -5.2,
+   "yaw": 1.571,
+   "w": 0.5,
+   "d": 0.66
+  },
+  {
+   "id": "washer_1",
+   "class": "washer",
+   "room": "bathroom",
+   "x": 1.3,
+   "y": -2.6,
+   "yaw": 0.0,
+   "w": 0.62,
+   "d": 0.62
+  },
+  {
+   "id": "shelf_unit_1",
+   "class": "shelf_unit",
+   "room": "storage",
+   "x": 4.4,
+   "y": -6.55,
+   "yaw": 0.0,
+   "w": 1.2,
+   "d": 0.5
+  },
+  {
+   "id": "shelf_unit_2",
+   "class": "shelf_unit",
+   "room": "storage",
+   "x": 5.7,
+   "y": -6.55,
+   "yaw": 0.0,
+   "w": 1.2,
+   "d": 0.5
+  },
+  {
+   "id": "shelf_unit_3",
+   "class": "shelf_unit",
+   "room": "storage",
+   "x": 7.0,
+   "y": -6.55,
+   "yaw": 0.0,
+   "w": 1.2,
+   "d": 0.5
+  },
+  {
+   "id": "shelf_east_1",
+   "class": "shelf_east",
+   "room": "storage",
+   "x": 8.55,
+   "y": -3.4,
+   "yaw": 1.571,
+   "w": 0.5,
+   "d": 1.2
+  },
+  {
+   "id": "crate_1",
+   "class": "crate",
+   "room": "storage",
+   "x": 4.2,
+   "y": -3.0,
+   "yaw": 0,
+   "w": 0.9,
+   "d": 0.9
+  },
+  {
+   "id": "crate_2",
+   "class": "crate",
+   "room": "storage",
+   "x": 7.6,
+   "y": -2.6,
+   "yaw": 0,
+   "w": 0.7,
+   "d": 0.7
+  },
+  {
+   "id": "crate_3",
+   "class": "crate",
+   "room": "storage",
+   "x": 5.0,
+   "y": -2.1,
+   "yaw": 0,
+   "w": 0.6,
+   "d": 0.6
+  },
+  {
+   "id": "console_table_1",
+   "class": "console_table",
+   "room": "corridor",
+   "x": -4.7,
+   "y": 1.24,
+   "yaw": 0.0,
+   "w": 1.05,
+   "d": 0.34
+  },
+  {
+   "id": "cart_1",
+   "class": "cart",
+   "room": "corridor",
+   "x": 3.9,
+   "y": -1.2,
+   "yaw": 3.142,
+   "w": 0.58,
+   "d": 0.43
+  },
+  {
+   "id": "plant_4",
+   "class": "plant",
+   "room": "corridor",
+   "x": 8.3,
+   "y": 1.05,
+   "yaw": 0,
+   "w": 0.78,
+   "d": 0.78
+  },
+  {
+   "id": "trash_bin_red_1",
+   "class": "trash_bin",
+   "room": "kitchen",
+   "x": -2.85,
+   "y": 2.0,
+   "yaw": 0,
+   "w": 0.4,
+   "d": 0.4
+  },
+  {
+   "id": "trash_bin_blue_1",
+   "class": "trash_bin",
+   "room": "study",
+   "x": 1.95,
+   "y": 1.75,
+   "yaw": 0,
+   "w": 0.4,
+   "d": 0.4
+  },
+  {
+   "id": "trash_bin_yellow_1",
+   "class": "trash_bin",
+   "room": "storage",
+   "x": 8.55,
+   "y": -1.95,
+   "yaw": 0,
+   "w": 0.4,
+   "d": 0.4
+  },
+  {
+   "id": "fire_extinguisher_1",
+   "class": "fire_extinguisher",
+   "room": "corridor",
+   "x": -8.35,
+   "y": 1.1,
+   "yaw": 0,
+   "w": 0.26,
+   "d": 0.26
+  },
+  {
+   "id": "shoe_cabinet_1",
+   "class": "shoe_cabinet",
+   "room": "living_room",
+   "x": -8.0,
+   "y": 1.29,
+   "yaw": 0.0,
+   "w": 0.72,
+   "d": 0.3
+  },
+  {
+   "id": "potted_plant_1",
+   "class": "potted_plant",
+   "room": "bedroom_1",
+   "x": -7.8,
+   "y": -1.29,
+   "yaw": 0.0,
+   "w": 0.38,
+   "d": 0.38
+  },
+  {
+   "id": "stool_1",
+   "class": "stool",
+   "room": "living_room",
+   "x": -4.6,
+   "y": 1.29,
+   "yaw": 0.0,
+   "w": 0.34,
+   "d": 0.34
+  },
+  {
+   "id": "umbrella_stand_1",
+   "class": "umbrella_stand",
+   "room": "bedroom_1",
+   "x": -5.0,
+   "y": -1.29,
+   "yaw": 0.0,
+   "w": 0.26,
+   "d": 0.26
+  },
+  {
+   "id": "console_table_2",
+   "class": "console_table",
+   "room": "living_room",
+   "x": -3.0,
+   "y": 1.29,
+   "yaw": 0.0,
+   "w": 0.9,
+   "d": 0.28
+  },
+  {
+   "id": "stool_2",
+   "class": "stool",
+   "room": "bedroom_2",
+   "x": -3.4,
+   "y": -1.29,
+   "yaw": 0.0,
+   "w": 0.3,
+   "d": 0.3
+  },
+  {
+   "id": "bookshelf_5",
+   "class": "bookshelf",
+   "room": "kitchen",
+   "x": 1.0,
+   "y": 1.29,
+   "yaw": 0.0,
+   "w": 0.8,
+   "d": 0.26
+  },
+  {
+   "id": "potted_plant_2",
+   "class": "potted_plant",
+   "room": "bedroom_2",
+   "x": 0.2,
+   "y": -1.29,
+   "yaw": 0.0,
+   "w": 0.44,
+   "d": 0.44
+  },
+  {
+   "id": "shoe_cabinet_2",
+   "class": "shoe_cabinet",
+   "room": "study",
+   "x": 2.6,
+   "y": 1.29,
+   "yaw": 0.0,
+   "w": 0.6,
+   "d": 0.28
+  },
+  {
+   "id": "umbrella_stand_2",
+   "class": "umbrella_stand",
+   "room": "storage",
+   "x": 4.4,
+   "y": -1.29,
+   "yaw": 0.0,
+   "w": 0.26,
+   "d": 0.26
+  },
+  {
+   "id": "console_table_3",
+   "class": "console_table",
+   "room": "study",
+   "x": 7.0,
+   "y": 1.29,
+   "yaw": 0.0,
+   "w": 0.8,
+   "d": 0.26
+  },
+  {
+   "id": "potted_plant_3",
+   "class": "potted_plant",
+   "room": "storage",
+   "x": 7.4,
+   "y": -1.29,
+   "yaw": 0.0,
+   "w": 0.4,
+   "d": 0.4
+  }
+ ]
+}

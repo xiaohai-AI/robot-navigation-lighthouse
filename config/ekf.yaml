@@ -1,0 +1,55 @@
+# ============================================================================
+#  EKF（robot_localization）—— C 阶段：把"轮式里程计 + IMU"融合成可信的 odom
+#
+#  为什么需要它：
+#    轮式里程计的死区是"轮子转了但车没动"（顶墙空转、蹭门框、原地掉头的万向球打滑）。
+#    实测：Nav2 开着探索跑一会儿，纯轮式 odom 就偏了 82° / 10 m。
+#    陀螺仪测的是**角速度**，不靠摩擦，不会因为打滑而漏记 —— 所以用 IMU 的
+#    yaw rate 主导航向，用轮式 odom 主导线速度，融合出来的 odom 才可信。
+#
+#  真值 vs 融合：
+#    /odom          gz 真值位姿          （A 阶段用它验证 SLAM 本身）
+#    /odom_wheels   轮式里程计（会漂）    （真实机器人只有这个 + IMU）
+#    /odometry/filtered  ← 本文件融合结果（C 阶段喂给 SLAM）
+# ============================================================================
+ekf_filter_node:
+  ros__parameters:
+    use_sim_time: true
+    frequency: 30.0
+    sensor_timeout: 0.1
+    two_d_mode: true                 # 平面机器人：只估计 x y yaw
+
+    # 输出坐标系：EKF 在 odom 系里发布；map->odom 仍由 slam_toolbox 负责
+    world_frame: odom
+    odom_frame: odom
+    base_link_frame: base_footprint
+    publish_tf: false                # TF 统一由 odom_tf_node.py 发布，避免两处抢发
+    publish_acceleration: false
+
+    # ---- 输入 1：轮式里程计 ----
+    # 只用 vx（前进速度）。**故意不用它的 yaw / vyaw** ——
+    # 那正是打滑最容易污染的量，用它就等于把病灶带进 EKF。
+    odom0: /odom_wheels
+    odom0_config: [false, false, false,
+                   false, false, false,
+                   true,  false, false,
+                   false, false, false,
+                   false, false, false]
+    odom0_differential: false
+    odom0_relative: false
+    odom0_queue_size: 10
+
+    # ---- 输入 2：IMU ----
+    # 只取 yaw rate（vyaw），**不取绝对姿态** ——
+    # 仿真里 IMU 的 orientation 是真值，直接用等于作弊；
+    # 只用角速度才是真实机器人（低成本 IMU）的做法：航向靠积分陀螺，不靠磁力计。
+    imu0: /imu
+    imu0_config: [false, false, false,
+                  false, false, false,
+                  false, false, false,
+                  false, false, true,
+                  false, false, false]
+    imu0_differential: false
+    imu0_relative: false
+    imu0_queue_size: 10
+    imu0_remove_gravitational_acceleration: true

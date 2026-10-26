@@ -1,0 +1,496 @@
+<?xml version="1.0" ?>
+<!--
+  Lighthouse-3D（灯塔 3D）——  Gazebo Fortress / gz-sim 6 模型
+  ==================================================================
+  与 models/lighthouse/ 的唯一区别：塔顶的雷达从单线换成 64 线。
+
+    单线版 lighthouse       64 线版 lighthouse_3d
+    1 条扫描线（0.78 m 平面）  64 条扫描线（-20°…+15°，共 35°）
+    gz 发 LaserScan            gz 发 PointCloudPacked（点云）
+    直接桥接成 /scan           需 pointcloud_to_laserscan 投影成 /scan
+    低矮家具看不到              0.03~0.83 m 的东西全看得见
+    雷达头 Ø80 × 60 mm         雷达头 Ø90 × 90 mm（真机 64 线尺寸）
+
+  几何速查（base_link 在 base_footprint 上方 0.010 m）：
+    base_link      0 0 0.010
+    wheel_*        (0, ±0.144, 0.023)  rel base_link, r=0.033, 轮距 0.288
+    caster_back_*  (-0.177, ±0.064, -0.004) rel base_link
+    tower          cylinder r=0.055, z 0.10→0.72（有 collision，真结构）
+    lidar_mount    cylinder r=0.040, z 0.72→0.735（顶面托 64 线雷达头）
+    base_scan      (-0.064, 0, 0.780) rel 模型原点 -> 传感器在雷达体中部
+                   雷达头本体 0.735→0.825，顶盖到 0.833（整机最高点）
+    imu_link       (0, 0, 0.068)      rel base_link
+    camera_link    (-0.004, 0, 0.700) rel 模型原点       -> 世界 0.70 m（塔前，低于雷达）
+
+  gz_frame_id 让桥接出来的点云、/imu、/camera 的 header.frame_id
+  直接等于 URDF 里的 frame 名（否则会是 lighthouse_3d/base_link/lidar3d 这种带作用域的名字，
+  投影节点和 SLAM 会找不到 TF）。
+-->
+<sdf version="1.9">
+  <model name="lighthouse_3d">
+
+    <!-- 模型自身原点 = base_footprint = 机器人接地平面；
+         具体摆位完全由 worlds/*.world 里的 <include><pose> 决定，这里写 0 避免两处叠加 -->
+    <pose>0 0 0 0 0 0</pose>
+
+    <!-- ==== 虚拟根坐标系（贴地，纯 TF 用，无惯量） ==== -->
+    <link name="base_footprint"/>
+
+    <!-- ==== 底盘 ==== -->
+    <link name="base_link">
+      <pose>0 0 0.010 0 0 0</pose>
+      <inertial>
+        <!-- 质心位置 = 底盘几何中心 (-0.064, 0, 0.037)，高度压低到 0.047 m
+             （相对贴地原点），差不多是电池+板子叠起来的重心。
+             原来写的是 (0,0,0)，也就是质心正好压在**轮轴线**上：
+               · 绕轮轴的恢复力臂 = 0 mm -> 中性平衡，一碰就翻
+               · 前进加速时惯性力向后 -> 力矩把万向球那侧（后半边）抬起来
+             挪到几何中心后，轮轴->质心 有 64 mm 力臂，
+             按插件 0.8 m/s² 的加速度上限，翘起来需要 17 m/s²，绝对安全。 -->
+        <pose>-0.064 0 0.037 0 0 0</pose>
+        <mass>1.3729096</mass>
+        <inertia>
+          <ixx>8.7002718e-03</ixx><ixy>-4.7576583e-05</ixy><ixz>1.1160499e-04</ixz>
+          <iyy>8.6195418e-03</iyy><iyz>-3.5422299e-06</iyz><izz>1.4612727e-02</izz>
+        </inertia>
+      </inertial>
+
+      <collision name="base_collision">
+        <pose>-0.064 0 0.047 0 0 0</pose>
+        <geometry><box><size>0.266 0.266 0.094</size></box></geometry>
+      </collision>
+
+      <visual name="base_visual">
+        <pose>-0.064 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://lighthouse/meshes/bases/waffle_base.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material>
+          <ambient>0.35 0.35 0.35 1</ambient>
+          <diffuse>0.42 0.42 0.45 1</diffuse>
+          <specular>0.15 0.15 0.15 1</specular>
+        </material>
+      </visual>
+
+      <!-- ==== 传感器塔（2026-10-23 按 Dan 的方案重做）====
+           背景：原来为了让相机到 0.6 m，加了一根 radius 0.012、纯 visual 的"幽灵杆"。
+           杆的 span 是 0.13~0.60 m —— 底端正好落在雷达 0.132 m 的扫描平面上，
+           于是雷达 360° 会扫到自己的杆（实测 0.124~0.138 m @ -24°~-31°，
+           命中点 (0.054,-0.055) 就在杆边上 2 mm），把开阔走廊误判成"贴着车头有障碍"。
+
+           根因是"低雷达 + 高相机"不自洽：任何从车体升到 0.6 m 的支撑都必然穿过
+           0.132 m 平面。所以彻底改成塔身结构：
+             · 塔身 cylinder r=0.055，从底盘顶面 0.10 撑到 0.72（有 collision，是真结构）
+             · 塔顶加一圈 r=0.040 的雷达座，0.72 → 0.78
+             · 雷达 base_scan 装到塔顶 z=0.78；相机挂塔前面 z=0.70，**低于雷达**
+           这样 0.78 m 平面上除了雷达自己和 0.12 m 以内的死区部件，没有任何东西，
+           360° 干净；相机在雷达下方，也不挡雷达。
+
+           注：这三个都是 base_link 的子几何（共享底盘惯量），不新增 link，
+           所以 TF / 动力学 / Nav2 footprint 全都不变。 -->
+      <visual name="tower_visual">
+        <pose>-0.064 0 0.410 0 0 0</pose>
+        <geometry><cylinder><radius>0.055</radius><length>0.620</length></cylinder></geometry>
+        <material>
+          <ambient>0.30 0.30 0.33 1</ambient>
+          <diffuse>0.45 0.45 0.50 1</diffuse>
+          <specular>0.25 0.25 0.25 1</specular>
+        </material>
+      </visual>
+      <collision name="tower_collision">
+        <pose>-0.064 0 0.410 0 0 0</pose>
+        <geometry><cylinder><radius>0.055</radius><length>0.620</length></cylinder></geometry>
+      </collision>
+
+      <visual name="lidar_mount_visual">
+        <pose>-0.064 0 0.7275 0 0 0</pose>
+        <geometry><cylinder><radius>0.040</radius><length>0.015</length></cylinder></geometry>
+        <material>
+          <ambient>0.25 0.25 0.27 1</ambient>
+          <diffuse>0.38 0.38 0.42 1</diffuse>
+        </material>
+      </visual>
+      <collision name="lidar_mount_collision">
+        <pose>-0.064 0 0.7275 0 0 0</pose>
+        <geometry><cylinder><radius>0.040</radius><length>0.015</length></cylinder></geometry>
+      </collision>
+
+      <!-- 相机支架：从塔身前面伸到相机（相机 x=-0.004，塔面 x=-0.009） -->
+      <visual name="camera_bracket_visual">
+        <pose>-0.036 0 0.700 0 0 0</pose>
+        <geometry><box><size>0.058 0.050 0.040</size></box></geometry>
+        <material>
+          <ambient>0.30 0.30 0.33 1</ambient>
+          <diffuse>0.45 0.45 0.50 1</diffuse>
+        </material>
+      </visual>
+      <collision name="camera_bracket_collision">
+        <pose>-0.036 0 0.700 0 0 0</pose>
+        <geometry><box><size>0.058 0.050 0.040</size></box></geometry>
+      </collision>
+
+      <!-- 激光雷达本体（LDS-01）已经移到下面的 base_scan link，
+           那里既有官方 lds.stl 网格（GUI 里看得见），也挂着 gpu_lidar 传感器 -->
+
+      <!-- ==== IMU ==== -->
+      <sensor name="imu_sensor" type="imu">
+        <pose>0 0 0.068 0 0 0</pose>
+        <topic>imu</topic>
+        <gz_frame_id>imu_link</gz_frame_id>
+        <always_on>1</always_on>
+        <update_rate>100</update_rate>
+        <imu>
+          <angular_velocity>
+            <x><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0</mean><stddev>0.0002</stddev></noise></z>
+          </angular_velocity>
+          <linear_acceleration>
+            <x><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></x>
+            <y><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></y>
+            <z><noise type="gaussian"><mean>0</mean><stddev>0.017</stddev></noise></z>
+          </linear_acceleration>
+        </imu>
+      </sensor>
+
+      <!-- 相机本体（RealSense R200）已经移到下面的 camera_link，
+           那里既有官方 r200.dae 网格（GUI 里看得见），也挂着 camera 传感器 -->
+    </link>
+
+    <!-- ======================================================================
+         激光雷达 LDS-01 本体 —— 装在传感器塔顶，z = 0.78（相对贴地原点）
+         2026-10-23 从 0.132 m 抬到塔顶。为什么：
+           · 相机必须到 0.70 m（视觉确认需要），而任何支撑都会穿过 0.132 m 平面
+             → 低雷达 + 高相机不自洽
+           · 装到塔顶后 360° 干净：平面上只有雷达自己，以及 0.12 m 死区内的
+             塔顶座 (r=0.040) 和相机支架尖端（距雷达轴 < 0.06 m）
+         代价（已与 Dan 确认，见 docs/phase2B_vision.md §13）：
+           · 扫描平面从 0.132 → 0.78，旧地图作废，必须重做
+           · 走廊 5 个矮地标（stool×2 0.45/0.50、umbrella_stand×2 0.55、
+             shoe_cabinet_2 0.73）掉到平面以下 → 已加高到 0.90 / 1.10 / 0.80
+           · 茶几(0.40)、垃圾桶(0.63)、灭火器(0.61)、边桌(0.69)、浴缸(0.69) 等
+             低矮物体不再进代价地图（真实高位雷达同样问题，靠 bumper/3D 补）
+         ====================================================================== -->
+    <link name="base_scan">
+      <pose>-0.064 0 0.78 0 0 0</pose>
+
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>0.114</mass>
+        <inertia><ixx>0.001</ixx><ixy>0</ixy><ixz>0</ixz>
+                 <iyy>0.001</iyy><iyz>0</iyz><izz>0.001</izz></inertia>
+      </inertial>
+
+      <!-- 64 线雷达头（真机尺寸：Ø90 mm × 90 mm，类似 Ouster OS1-64）
+           塔座顶面 0.735 → 雷达体 0.735~0.825，顶盖到 0.833。
+           传感器原点仍在 0.780（雷达体中部），所以 URDF 的 scan_joint z=0.770 不用改。 -->
+      <visual name="lidar3d_body">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry><cylinder><radius>0.045</radius><length>0.090</length></cylinder></geometry>
+        <material>
+          <ambient>0.13 0.13 0.15 1</ambient>
+          <diffuse>0.20 0.20 0.23 1</diffuse>
+          <specular>0.35 0.35 0.38 1</specular>
+        </material>
+      </visual>
+
+      <!-- 光学窗口带（激光出射的那一圈，视觉上用更黑的环表示） -->
+      <visual name="lidar3d_window">
+        <pose>0 0 -0.005 0 0 0</pose>
+        <geometry><cylinder><radius>0.0455</radius><length>0.020</length></cylinder></geometry>
+        <material>
+          <ambient>0.04 0.04 0.05 1</ambient>
+          <diffuse>0.06 0.06 0.07 1</diffuse>
+          <specular>0.60 0.60 0.65 1</specular>
+        </material>
+      </visual>
+
+      <!-- 顶盖 -->
+      <visual name="lidar3d_cap">
+        <pose>0 0 0.049 0 0 0</pose>
+        <geometry><cylinder><radius>0.042</radius><length>0.008</length></cylinder></geometry>
+        <material>
+          <ambient>0.30 0.30 0.33 1</ambient>
+          <diffuse>0.45 0.45 0.48 1</diffuse>
+        </material>
+      </visual>
+
+      <!-- 碰撞体：一个圆柱代表整个雷达头（0.735~0.833） -->
+      <collision name="lidar3d_collision">
+        <pose>0 0 0.004 0 0 0</pose>
+        <geometry><cylinder><radius>0.045</radius><length>0.098</length></cylinder></geometry>
+      </collision>
+
+      <!-- 传感器本体：挂在 base_scan link 上，pose 归零（位置已由 link 决定） -->
+      <!-- 64 线雷达：水平 360 × 垂直 64（-20°…+15°，共 35°）
+           垂直 samples > 1 时 gz-sim 6 改发 PointCloudPacked（不再是 LaserScan），
+           所以桥接改成 PointCloud2，再加 pointcloud_to_laserscan 投影出 /scan。
+           水平 360 / 10 Hz 与原单线一致 → 下游角度分辨率不变。 -->
+      <sensor name="lidar3d" type="gpu_lidar">
+        <pose>0 0 0 0 0 0</pose>
+        <topic>scan</topic>
+        <gz_frame_id>base_scan</gz_frame_id>
+        <update_rate>10</update_rate>
+        <always_on>1</always_on>
+        <visualize>false</visualize>
+        <lidar>
+          <scan>
+            <horizontal>
+              <samples>360</samples>
+              <resolution>1</resolution>
+              <min_angle>-3.14159265</min_angle>
+              <max_angle>3.14159265</max_angle>
+            </horizontal>
+            <vertical>
+              <samples>64</samples>
+              <resolution>1</resolution>
+              <min_angle>-0.349066</min_angle>
+              <max_angle>0.261799</max_angle>
+            </vertical>
+          </scan>
+          <range>
+            <min>0.10</min>
+            <max>20.0</max>
+            <resolution>0.01</resolution>
+          </range>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.005</stddev>
+          </noise>
+        </lidar>
+      </sensor>
+    </link>
+
+    <!-- ======================================================================
+         相机本体 RealSense R200 —— 挂在传感器塔前面，z = 0.70（低于雷达 0.78）
+         为什么高度重要：原来 0.104 m 时，镜头在 0.55~1.41 m 处只框到冰箱面板
+         下部（可见高度带上限 0.40~0.84 m），门缝(1.15)和上把手(1.45)全在画面外，
+         VLM 会把冰箱判成"房门"（实测 320x240 两帧均答"房门"）。
+         0.60 m 时可见带 [-0.13, +1.33]；现在 0.70 m 抬到 [0.00, +1.46]，
+         下把手(0.75) 与门缝(1.15) 都更靠画面中部，余量更大。
+
+         塔身/支架都带 collision（见 base_link 里的 tower_visual 等），相机本体没有：
+         官方 r200.dae 只是外观，真实相机也不需要参与碰撞。
+         ====================================================================== -->
+    <link name="camera_link">
+      <pose>-0.004 0 0.70 0 0 0</pose>
+
+      <!-- 幽灵立杆已删除（2026-10-23）：那根 r=0.012、只有 visual 的杆底端在 0.13 m，
+           正好插进雷达 0.132 m 的扫描平面，是"雷达扫到自己"的根因。
+           现在改由 base_link 上的塔身 + 相机支架承担机械支撑（都带 collision）。 -->
+
+      <!-- 看得见的相机长条（官方 r200.dae）。
+           rpy(1.5708,0,1.5708) 把这个网格转成"13 cm 长条朝左右"；
+           网格原点在角上（y: 0~0.13、z: 0~0.02），所以视觉上来一记
+           (-0.065, -0.010) 把它摆正到 camera_link 原点，否则整条会偏到车身左侧。
+           2026-10-23 修"跳动黑影"：原来传感器被放在这条外壳内部（前脸只在镜头前
+           0.7 mm，远小于 near clip 0.05），每一帧都在被裁掉/露出之间抖 → 画面跳黑块。
+           现在外壳整体退到镜头后面，传感器在它前方 1.5 cm。 -->
+      <visual name="camera_visual">
+        <pose>-0.003 -0.065 -0.010 1.5708 0 1.5708</pose>
+        <geometry>
+          <mesh>
+            <uri>model://lighthouse/meshes/sensors/r200.dae</uri>
+          </mesh>
+        </geometry>
+      </visual>
+
+      <!-- 传感器本体：gz 相机沿自己 +x 看出去，所以不需要额外旋转
+           （帧名固定用 camera_link，与 dan_house.launch.py 的 4b 静态 TF 对齐；
+             不用 *_optical_frame，因为 gz 相机坐标系本来就是 x 向前 / y 向左 / z 向上，
+             与 ROS 车身约定一致，再做一整套 optical 旋转反而会和 TF 打架） -->
+      <sensor name="camera" type="camera">
+        <!-- 传感器放在外壳前脸之外 1.5 cm：外壳（x 到 +0.0026）整体在镜头背后，
+             画面里就不会再出现自家机身的黑色碎块。 -->
+        <pose>0.015 0 0 0 0 0</pose>
+        <topic>camera/image_raw</topic>
+        <gz_frame_id>camera_link</gz_frame_id>
+        <!-- 性能：相机每出一帧就是一次完整的离屏渲染。SLAM/Nav2 用不到相机，
+             所以降到 320x240@10 Hz。要做视觉（VLM/VLA）时再调回 640x480@15。 -->
+        <update_rate>10</update_rate>
+        <always_on>1</always_on>
+        <visualize>false</visualize>
+        <camera>
+          <horizontal_fov>1.204</horizontal_fov>
+          <image><width>320</width><height>240</height><format>R8G8B8</format></image>
+          <clip><near>0.05</near><far>20.0</far></clip>
+        </camera>
+      </sensor>
+    </link>
+
+    <!-- ==== 左轮 ====
+         注意：link 本身不做旋转（轴对齐车身），旋转只作用在 collision 的圆柱上。
+         如果像 URDF 那样把整个 link 转 rpy(-90°)，关节的 <axis> 就会跟着转，
+         <xyz>0 0 1</xyz> 会变成"世界竖直轴" —— 轮子变成原地打转的陀螺（本项目踩过）。-->
+    <link name="wheel_left_link">
+      <pose>0 0.144 0.033 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>2.8498940e-02</mass>
+        <!-- 轮轴沿 Y，所以转动惯量最大的是 iyy -->
+        <inertia>
+          <ixx>1.1175580e-05</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>2.0712558e-05</iyy><iyz>0</iyz><izz>1.1175580e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="wheel_collision">
+        <pose>0 0 0 -1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.033</radius><length>0.018</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="wheel_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://lighthouse/meshes/wheels/left_tire.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+      </visual>
+    </link>
+
+    <!-- ==== 右轮 ==== -->
+    <link name="wheel_right_link">
+      <pose>0 -0.144 0.033 0 0 0</pose>
+      <inertial>
+        <pose>0 0 0 0 0 0</pose>
+        <mass>2.8498940e-02</mass>
+        <inertia>
+          <ixx>1.1175580e-05</ixx><ixy>0</ixy><ixz>0</ixz>
+          <iyy>2.0712558e-05</iyy><iyz>0</iyz><izz>1.1175580e-05</izz>
+        </inertia>
+      </inertial>
+      <collision name="wheel_collision">
+        <pose>0 0 0 -1.5708 0 0</pose>
+        <geometry><cylinder><radius>0.033</radius><length>0.018</length></cylinder></geometry>
+        <surface><friction><ode><mu>1.0</mu><mu2>1.0</mu2></ode></friction></surface>
+      </collision>
+      <visual name="wheel_visual">
+        <pose>0 0 0 0 0 0</pose>
+        <geometry>
+          <mesh>
+            <uri>model://lighthouse/meshes/wheels/right_tire.stl</uri>
+            <scale>0.001 0.001 0.001</scale>
+          </mesh>
+        </geometry>
+        <material><ambient>0.1 0.1 0.1 1</ambient><diffuse>0.2 0.2 0.2 1</diffuse></material>
+      </visual>
+    </link>
+
+    <!-- ==== 后部两个万向球（滚珠万向轮） ====
+         真机的万向轮是"滚珠"，靠球体滚动实现任意方向移动。
+         所以这里用 ball 关节 + 正常摩擦，让球真的滚起来。
+         如果写成 fixed 关节 + mu=0 想"让它随便滑"，很多引擎会把 0 当成未设置而
+         使用默认摩擦，结果球变成刹车片：原地转不动、直行 odom 比真实多报一大截。-->
+    <link name="caster_back_left_link">
+      <pose>-0.177 0.064 0.011 0 0 0</pose>
+      <inertial><mass>0.005</mass><inertia><ixx>1e-6</ixx><iyy>1e-6</iyy><izz>1e-6</izz></inertia></inertial>
+      <collision name="caster_collision">
+        <geometry><sphere><radius>0.011</radius></sphere></geometry>
+        <surface><friction><ode><mu>0.1</mu><mu2>0.1</mu2></ode></friction></surface>
+      </collision>
+      <visual name="caster_visual">
+        <geometry><sphere><radius>0.011</radius></sphere></geometry>
+        <material><diffuse>0.25 0.25 0.25 1</diffuse></material>
+      </visual>
+    </link>
+    <link name="caster_back_right_link">
+      <pose>-0.177 -0.064 0.011 0 0 0</pose>
+      <inertial><mass>0.005</mass><inertia><ixx>1e-6</ixx><iyy>1e-6</iyy><izz>1e-6</izz></inertia></inertial>
+      <collision name="caster_collision">
+        <geometry><sphere><radius>0.011</radius></sphere></geometry>
+        <surface><friction><ode><mu>0.1</mu><mu2>0.1</mu2></ode></friction></surface>
+      </collision>
+      <visual name="caster_visual">
+        <geometry><sphere><radius>0.011</radius></sphere></geometry>
+        <material><diffuse>0.25 0.25 0.25 1</diffuse></material>
+      </visual>
+    </link>
+
+    <!-- ==== 关节 ==== -->
+    <joint name="base_joint" type="fixed">
+      <parent>base_footprint</parent><child>base_link</child>
+    </joint>
+    <joint name="scan_joint" type="fixed">
+      <parent>base_link</parent><child>base_scan</child>
+    </joint>
+    <joint name="camera_joint" type="fixed">
+      <parent>base_link</parent><child>camera_link</child>
+    </joint>
+    <!-- 轮轴沿 Y（轮子 link 没有旋转，所以这里的轴就是车身坐标系的 Y） -->
+    <joint name="wheel_left_joint" type="revolute">
+      <parent>base_link</parent><child>wheel_left_link</child>
+      <axis><xyz>0 1 0</xyz></axis>
+      <limit><lower>-1e6</lower><upper>1e6</upper></limit>
+    </joint>
+    <joint name="wheel_right_joint" type="revolute">
+      <parent>base_link</parent><child>wheel_right_link</child>
+      <axis><xyz>0 1 0</xyz></axis>
+      <limit><lower>-1e6</lower><upper>1e6</upper></limit>
+    </joint>
+    <!-- 万向球用 ball 关节，让球体能自由滚动（真机的滚珠万向轮原理） -->
+    <joint name="caster_back_left_joint" type="ball">
+      <parent>base_link</parent><child>caster_back_left_link</child>
+    </joint>
+    <joint name="caster_back_right_joint" type="ball">
+      <parent>base_link</parent><child>caster_back_right_link</child>
+    </joint>
+
+    <!-- ==== 差速驱动（订阅 /cmd_vel，发布 /odom） ==== -->
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>wheel_left_joint</left_joint>
+      <right_joint>wheel_right_joint</right_joint>
+      <wheel_separation>0.288</wheel_separation>
+      <wheel_radius>0.033</wheel_radius>
+      <num_wheel_pairs>1</num_wheel_pairs>
+
+      <min_linear_velocity>-0.35</min_linear_velocity>
+      <max_linear_velocity>0.35</max_linear_velocity>
+      <min_angular_velocity>-1.5</min_angular_velocity>
+      <max_angular_velocity>1.5</max_angular_velocity>
+      <max_linear_acceleration>0.8</max_linear_acceleration>
+      <max_angular_acceleration>3.0</max_angular_acceleration>
+      <max_wheel_torque>1.5</max_wheel_torque>
+      <max_wheel_acceleration>5.0</max_wheel_acceleration>
+
+      <topic>cmd_vel</topic>
+      <!-- 轮式里程计改名到 /odom_wheels：它会因为打滑/空转而漂移，
+           保留它是为了 C 阶段做 EKF 融合、以及和真值做对比。
+           真正喂给 SLAM 的 /odom 改由下面的 OdometryPublisher 提供（真值）。 -->
+      <odom_topic>/odom_wheels</odom_topic>
+      <odom_publish_frequency>30</odom_publish_frequency>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
+      <!-- TF 由 odom_tf_node.py 负责发布，这里关掉避免重复 -->
+      <publish_odom_tf>false</publish_odom_tf>
+      <publish_wheel_tf>false</publish_wheel_tf>
+    </plugin>
+
+    <!-- ==== 真值里程计（A 阶段）====
+         直接把模型在 world 中的真实位姿当里程计发布，绕开"轮子空转 = 假装移动"
+         这个物理盲区。仿真里做 SLAM/导航算法测试的标准做法：
+         让被测对象（激光 SLAM）只面对它该面对的问题。
+         它不依赖轮子，因此顶墙、蹭框、倒车都不会让它跑偏。 -->
+    <plugin filename="ignition-gazebo-odometry-publisher-system"
+            name="ignition::gazebo::systems::OdometryPublisher">
+      <dimensions>2</dimensions>
+      <odom_frame>odom</odom_frame>
+      <robot_base_frame>base_footprint</robot_base_frame>
+      <odom_topic>/odom</odom_topic>
+      <odom_publish_frequency>30</odom_publish_frequency>
+    </plugin>
+
+    <!-- ==== 轮子关节状态（给 RViz 转轮子用） ==== -->
+    <plugin filename="gz-sim-joint-state-publisher-system" name="gz::sim::systems::JointStatePublisher">
+      <topic>joint_states</topic>
+      <joint_name>wheel_left_joint</joint_name>
+      <joint_name>wheel_right_joint</joint_name>
+    </plugin>
+
+  </model>
+</sdf>

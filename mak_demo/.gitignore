@@ -1,0 +1,11 @@
+# MAF 与全部依赖隔离在这个 venv 里，不进版本库
+.venv/
+__pycache__/
+*.pyc
+
+# 密钥只放本地
+.env
+
+# 运行时产物
+logs/
+*.log

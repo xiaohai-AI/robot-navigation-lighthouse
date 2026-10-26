@@ -1,0 +1,47 @@
+<!--
+  navigation BT（探索专用）：把 BackUp 提到恢复链**第一位**。
+
+  为什么（2026-10-25 实测）：
+    探索日志里 DWB 反复报 `Failed to make progress` —— 全局路径有，但车在窄处
+    找不到无碰撞轨迹。Nav2 默认 BT 的恢复顺序是
+        清图 → 原地转 1.57 rad → 等 5 s → 后退 0.30 m
+    实测车卡住时"原地转"完全没用（速度只有 0.8 rad/s，转完还在原地），
+    等到它轮到"后退"时，探索节点的 12 s 卡死看门狗已经把目标取消了。
+    把后退放到第一位：车先离开窄处，回到开阔一点的位置再重规划，
+    这是唯一能改变几何条件的恢复动作。
+
+  与默认 BT 的差别只有两处：
+    1) RecoveryActions 的顺序：BackUp → 清局部图 → 清全局图 → Spin → Wait
+    2) BackUp 距离 0.30 → 0.35 m，速度 0.05 → 0.06 m/s（省 1 s）
+-->
+<root main_tree_to_execute="MainTree">
+  <BehaviorTree ID="MainTree">
+    <RecoveryNode number_of_retries="6" name="NavigateRecovery">
+      <PipelineSequence name="NavigateWithReplanning">
+        <RateController hz="1.0">
+          <RecoveryNode number_of_retries="1" name="ComputePathToPose">
+            <ComputePathToPose goal="{goal}" path="{path}" planner_id="GridBased"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Context" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </RecoveryNode>
+        </RateController>
+        <RecoveryNode number_of_retries="1" name="FollowPath">
+          <FollowPath path="{path}" controller_id="FollowPath"/>
+          <ClearEntireCostmap name="ClearLocalCostmap-Context" service_name="local_costmap/clear_entirely_local_costmap"/>
+        </RecoveryNode>
+      </PipelineSequence>
+      <ReactiveFallback name="RecoveryFallback">
+        <GoalUpdated/>
+        <RoundRobin name="RecoveryActions">
+          <!-- ① 先退：唯一能改变"卡在窄处"几何条件的动作 -->
+          <BackUp backup_dist="0.35" backup_speed="0.06"/>
+          <Sequence name="ClearingActions">
+            <ClearEntireCostmap name="ClearLocalCostmap-Subtree" service_name="local_costmap/clear_entirely_local_costmap"/>
+            <ClearEntireCostmap name="ClearGlobalCostmap-Subtree" service_name="global_costmap/clear_entirely_global_costmap"/>
+          </Sequence>
+          <Spin spin_dist="1.57"/>
+          <Wait wait_duration="3"/>
+        </RoundRobin>
+      </ReactiveFallback>
+    </RecoveryNode>
+  </BehaviorTree>
+</root>

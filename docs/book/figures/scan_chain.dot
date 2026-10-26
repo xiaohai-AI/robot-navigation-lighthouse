@@ -1,0 +1,23 @@
+
+digraph G {
+  graph [rankdir=LR, fontname="Helvetica", nodesep=.3, ranksep=.5, bgcolor="white"];
+  node  [shape=box, fontname="Helvetica", fontsize=9.5, style="rounded,filled", color="#64748b"];
+  edge  [color="#94a3b8", arrowsize=.7, fontname="Helvetica", fontsize=8, fontcolor="#475569"];
+
+  gz2 [label="gz lidar (2D)\nLaserScan 10 Hz", fillcolor="#f1f5f9"];
+  gz3 [label="gz lidar (64-line)\nPointCloud2 23,040 pts/frame", fillcolor="#f1f5f9"];
+  br  [label="ros_gz_bridge\ngz_bridge", fillcolor="#fde68a"];
+  p2l [label="pointcloud_to_laserscan\ntarget_frame base_scan\n-0.75 m .. +0.05 m", fillcolor="#fde68a"];
+  sc  [label="/scan  (LaserScan 360 rays, 0.12–12 m)", fillcolor="#dbeafe"];
+  gd  [label="tools/scan_pub_guard.py\nexactly one publisher, name checked", fillcolor="#fee2e2"];
+  sl  [label="slam_toolbox", fillcolor="#dcfce7"];
+  cm  [label="Nav2 costmap\nobservation_sources: scan", fillcolor="#dcfce7"];
+
+  gz2 -> br [label="2D mode"];
+  gz3 -> br [label="3D mode"];
+  br -> sc [label="2D mode: direct"];
+  br -> p2l [label="3D mode: /scan/points only"];
+  p2l -> sc;
+  sc -> gd [style=dashed, label="watches"];
+  sc -> sl; sc -> cm;
+}
