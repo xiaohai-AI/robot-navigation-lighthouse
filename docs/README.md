@@ -43,6 +43,33 @@ cd delivery/2026-10-26 && sha256sum -c MANIFEST.sha256
 | [`phase2B_vision.md`](phase2B_vision.md) | camera, VLM confirmation, passability question answering |
 | [`phase3_lidar3d.md`](phase3_lidar3d.md) | single-line → 64-line lidar conversion and end-to-end verification |
 
+## Rebuilding the documents
+
+All three are regenerated from the repository — no hand-written numbers.
+
+Prerequisites: `pandoc`, a TeX distribution with `xelatex`, the Noto CJK fonts, `graphviz`,
+and the Python packages `matplotlib` and `python-pptx`
+(`python3 -m pip install --user matplotlib python-pptx`).
+
+```bash
+# 1. figures (9 PNGs into docs/book/figures/)
+#    floorplan from config/semantics.json, coverage curve decoded from the checkpoint
+#    maps, 3x3 arms from experiments/ab_explore.csv. Needs matplotlib + graphviz.
+/usr/bin/python3 docs/book/make_figures.py
+
+# 2. the textbook PDF (63 pages). Needs pandoc + xelatex + Noto CJK fonts.
+#    The script copies the sources first: it replaces ✅/❌ with PASS/FAIL (the fonts
+#    lack those glyphs) and prepends chapter numbers (the .md headings carry their own
+#    section numbers, so pandoc must not number them twice).
+bash docs/book/build_pdf.sh
+
+# 3. the slides (19 slides). Needs python-pptx.
+/usr/bin/python3 docs/book/build_pptx.py
+```
+
+Sanity check after building: `build_pdf.sh` prints the page count and the number of
+missing-glyph and overfull-box warnings — both should be `0`.
+
 ## What is *not* in this repository
 
 `experiments/*_eval.jsonl` (per-trajectory evaluation dumps, 100–700 MB each) are excluded.
