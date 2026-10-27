@@ -99,4 +99,18 @@ delivery/               冻结快照 + SHA-256 清单
 
 ---
 
-仿真世界、代码、文档均为本项目自建。License 未指定。
+## License
+
+**双许可（dual-licensed）：MIT 或 Apache-2.0，任选其一。**
+
+| 文件 | 内容 | 什么时候选它 |
+|---|---|---|
+| [`LICENSE-MIT`](LICENSE-MIT) | 最宽松，保留版权声明即可 | 想最省事地复用代码 |
+| [`LICENSE-APACHE`](LICENSE-APACHE) | 附加明确的专利授权条款 | 企业 / 商业环境（法务更认） |
+
+Copyright (c) 2026 Dan (github.com/xiaohai-AI)
+
+第三方归属（TurtleBot3 车身网格、以及不随仓库分发的 Gazebo / ROS 2 / Nav2 /
+slam_toolbox / ollama 与所服务的模型）见 [`NOTICE`](NOTICE)：本项目自建的代码、世界、
+文档、生成资产适用上述双许可，第三方文件仍从其上游许可证。
+

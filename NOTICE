@@ -1,0 +1,30 @@
+Lighthouse — agent-guided mobile robot in Gazebo Fortress
+Copyright (c) 2026 Dan (github.com/xiaohai-AI)
+
+This project is dual-licensed: you may use it under the terms of either the MIT
+license (see LICENSE-MIT) or the Apache License, Version 2.0 (see LICENSE-APACHE),
+at your option.
+
+--------------------------------------------------------------------------------
+Third-party material
+--------------------------------------------------------------------------------
+
+Vehicle meshes and the differential-drive base model under models/ are derived from
+ROBOTIS TurtleBot3 (github.com/ROBOTIS-GIT/turtlebot3), which is licensed under the
+Apache License, Version 2.0. Those files remain under their upstream license; the
+dual license above applies to this project's own code, worlds, documentation and
+generated assets.
+
+Simulated runs also depend on software that is not vendored here and keeps its own
+license: Gazebo / gz-sim, ROS 2 (rclpy, ros_gz bridge, rosbridge_suite),
+Nav2, slam_toolbox, pointcloud_to_laserscan, and the local LLM runtime (ollama)
+together with the models it serves (qwen3-vl:8b, qwen2.5:7b — each model carries
+its own license terms from its publisher).
+
+--------------------------------------------------------------------------------
+Note on the numbers in this repository
+--------------------------------------------------------------------------------
+
+Every measurement quoted in the README, in docs/ and in the textbook was produced by
+running this code in simulation and is reproducible from the committed sources. The
+project has not been run on physical hardware.
