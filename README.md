@@ -103,10 +103,11 @@ delivery/               冻结快照 + SHA-256 清单
 
 **双许可（dual-licensed）：MIT 或 Apache-2.0，任选其一。**
 
-| 文件 | 内容 | 什么时候选它 |
+| 文件 | 内容 | 什么时候用它 |
 |---|---|---|
-| [`LICENSE-MIT`](LICENSE-MIT) | 最宽松，保留版权声明即可 | 想最省事地复用代码 |
-| [`LICENSE-APACHE`](LICENSE-APACHE) | 附加明确的专利授权条款 | 企业 / 商业环境（法务更认） |
+| [`LICENSE`](LICENSE) | **双许可声明 + 两份全文合订**（GitHub 识别的就是这份） | 一般情况看这个就够 |
+| [`LICENSE-MIT`](LICENSE-MIT) | 单份 MIT 正文 | 想最省事地复用代码 |
+| [`LICENSE-APACHE`](LICENSE-APACHE) | 单份 Apache-2.0 正文，附加明确的专利授权条款 | 企业 / 商业环境（法务更认） |
 
 Copyright (c) 2026 Dan (github.com/xiaohai-AI)
 
